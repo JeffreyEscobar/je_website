@@ -46,9 +46,9 @@ export default defineConfig(({ mode }) => ({
           const info = name.split('.');
           const ext = info[info.length - 1];
           
-          // Special handling for favicon to enable cache busting
+          // Keep favicon.ico at root without hash for consistent linking
           if (name === 'favicon.ico') {
-            return `favicon-[hash].ico`;
+            return `favicon.ico`;
           }
           
           if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico)$/i.test(name)) {

@@ -2,10 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon-20250605.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-20250605.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-20250605.ico" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-20250605.ico" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Performance optimizations -->
@@ -14,26 +14,7 @@
     <link rel="dns-prefetch" href="https://linkedin.com">
     <link rel="dns-prefetch" href="https://github.com">
     
-    <!-- Security Headers -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-    
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline';
-      style-src 'self' 'unsafe-inline' fonts.googleapis.com;
-      img-src 'self' data: blob:;
-      font-src 'self' fonts.gstatic.com;
-      connect-src 'self' https://linkedin.com https://github.com;
-      frame-ancestors 'none';
-      base-uri 'self';
-      form-action 'self' mailto:;
-      upgrade-insecure-requests;
-    ">
+    <!-- Security Headers - Note: X-Frame-Options and CSP with frame-ancestors must be set via HTTP headers, not meta tags -->
     
     <title>Jeffrey Escobar | SWE · Founder · Technologist</title>
     <meta name="description" content="Jeffrey Escobar is a visionary Software Engineer and Technologist based in Miami, Florida. Dive into his portfolio of cutting-edge projects, AI-driven tools, and forward-thinking insights shaping the future of technology, design, and innovation.">
