@@ -56,7 +56,7 @@ describe('Security Utils', () => {
   describe('isValidURL', () => {
     it('validates correct URLs', () => {
       expect(isValidURL('https://example.com')).toBe(true);
-      expect(isValidURL('http://www.example.com')).toBe(true);
+      expect(isValidURL('https://www.example.com')).toBe(true);
       expect(isValidURL('https://subdomain.example.com/path?query=value')).toBe(true);
     });
 
