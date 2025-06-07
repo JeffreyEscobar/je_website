@@ -46,9 +46,9 @@ export default defineConfig(({ mode }) => ({
           const info = name.split('.');
           const ext = info[info.length - 1];
           
-          // Keep favicon.ico at root without hash for consistent linking
-          if (name === 'favicon.ico') {
-            return `favicon.ico`;
+          // Keep favicon files at root without hash for consistent linking
+          if (name === 'favicon.ico' || name === 'je_favicon.ico') {
+            return name;
           }
           
           if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico)$/i.test(name)) {
