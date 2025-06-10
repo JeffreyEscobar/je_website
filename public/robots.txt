@@ -1,3 +1,5 @@
+Sitemap: https://jeffreyescobar.com/sitemap.xml
+
 User-agent: Googlebot
 Allow: /
 
