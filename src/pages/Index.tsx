@@ -289,7 +289,7 @@ const Index = () => {
   };
 
   const handleViewProjectClick = () => {
-    window.open('https://github.com/JeffreyEscobar', '_blank');
+    window.open('https://fred-dashboard-2025.vercel.app/', '_blank');
   };
 
   return (

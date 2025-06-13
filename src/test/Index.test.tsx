@@ -101,7 +101,7 @@ describe('Index Page', () => {
       const viewProjectButton = screen.getByText('View Project');
       fireEvent.click(viewProjectButton);
       
-      expect(mockOpen).toHaveBeenCalledWith('https://github.com/JeffreyEscobar', '_blank');
+      expect(mockOpen).toHaveBeenCalledWith('https://fred-dashboard-2025.vercel.app/', '_blank');
     });
   });
 
