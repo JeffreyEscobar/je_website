@@ -289,7 +289,7 @@ const Index = () => {
   };
 
   const handleViewProjectClick = () => {
-    window.open('https://fred-dashboard-2025.vercel.app/', '_blank');
+    window.open('https://www.fredai.net/', '_blank');
   };
 
   return (
