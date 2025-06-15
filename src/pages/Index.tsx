@@ -380,9 +380,11 @@ const Index = () => {
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">React</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">JavaScript</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">Go</span>
+                    <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">TypeScript</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">D3.js</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">Chart.js</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">Tailwind CSS</span>
+                    <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">Google Cloud</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">FRED API</span>
                     <span className="px-3 py-1 bg-orange-500/20 text-orange-600 rounded-full text-sm">OpenAI API</span>
                   </div>
