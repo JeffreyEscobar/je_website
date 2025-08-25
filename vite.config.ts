@@ -17,10 +17,7 @@ export default defineConfig(({ mode }) => ({
     }
   },
   plugins: [
-    react({
-      // Enable React Fast Refresh for better development experience
-      plugins: mode === 'development' ? [["@swc/plugin-react-refresh", {}]] : [],
-    }),
+    react(),
   ],
   resolve: {
     alias: {
