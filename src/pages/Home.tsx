@@ -202,13 +202,15 @@ const Home: React.FC = () => {
   // Auto-start audio on first user interaction
   const startAudioOnInteraction = useCallback(() => {
     const audio = audioRef.current;
-    console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio });
+    console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio, isAudioPlaying });
     
-    if (!hasUserInteracted && audio) {
+    // Only try to start if audio isn't already playing
+    if (audio && !isAudioPlaying) {
       setHasUserInteracted(true); // Mark that user has interacted
       
       if (isAudioReady) {
         // Audio is ready, try to play immediately
+        console.log('Attempting to play audio now...');
         const playPromise = audio.play();
         
         if (playPromise !== undefined) {
@@ -225,14 +227,28 @@ const Home: React.FC = () => {
         console.log('User clicked but audio not ready - will retry when ready');
         setUserClickedBeforeReady(true);
       }
+    } else if (isAudioPlaying) {
+      console.log('Audio is already playing, skipping');
     }
-  }, [hasUserInteracted, isAudioReady]);
+  }, [hasUserInteracted, isAudioReady, isAudioPlaying]);
 
   // Handle page clicks
   const handlePageClick = useCallback((e: React.MouseEvent) => {
     console.log('Page clicked, attempting to start audio');
     // Start audio on first interaction
     startAudioOnInteraction();
+    
+    // Additional direct attempt for stubborn mobile browsers
+    if (!isAudioPlaying && audioRef.current && isAudioReady) {
+      console.log('Direct audio play attempt from click handler');
+      audioRef.current.play().then(() => {
+        console.log('Direct audio start successful');
+        setIsAudioPlaying(true);
+        setIsAudioMuted(false);
+      }).catch((error) => {
+        console.log('Direct audio start failed:', error);
+      });
+    }
     
     // Don't create balls if clicking on links
     if ((e.target as HTMLElement).tagName === 'A') return;
@@ -243,7 +259,7 @@ const Home: React.FC = () => {
       const y = e.clientY - rect.top;
       createBall(x, y);
     }
-  }, [createBall, startAudioOnInteraction]);
+  }, [createBall, startAudioOnInteraction, isAudioPlaying, isAudioReady]);
 
   // Extract pixel data from image for collision detection
   const extractImagePixelData = useCallback(() => {
@@ -317,15 +333,23 @@ const Home: React.FC = () => {
 
     const handleUserInteraction = (event: Event) => {
       // Only respond to "active" interactions that grant audio permissions
-      const activeEvents = ['click', 'touchstart', 'keydown'];
+      const activeEvents = ['click', 'touchstart', 'touchend', 'keydown'];
       if (activeEvents.includes(event.type)) {
         console.log('Active user interaction detected:', event.type);
-        startAudioOnInteraction();
+        
+        // For mobile, add a small delay to ensure touch is fully registered
+        if (event.type === 'touchstart' || event.type === 'touchend') {
+          setTimeout(() => {
+            startAudioOnInteraction();
+          }, 100);
+        } else {
+          startAudioOnInteraction();
+        }
       }
     };
 
-    // Listen only for active user interaction events (not passive ones like mousemove)
-    const events = ['click', 'touchstart', 'keydown'];
+    // Listen for active user interaction events including touchend for mobile
+    const events = ['click', 'touchstart', 'touchend', 'keydown'];
     
     events.forEach(event => {
       document.addEventListener(event, handleUserInteraction, { once: true, passive: true });
