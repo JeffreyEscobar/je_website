@@ -23,6 +23,12 @@ const Home: React.FC = () => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('State update:', { hasUserInteracted, isAudioReady, isAudioPlaying });
+  }, [hasUserInteracted, isAudioReady, isAudioPlaying]);
   const [balls, setBalls] = useState<Ball[]>([]);
   const ballIdRef = useRef(0);
   const animationRef = useRef<number>();
@@ -192,8 +198,35 @@ const Home: React.FC = () => {
     }, 10000);
   }, []);
 
+  // Auto-start audio on first user interaction
+  const startAudioOnInteraction = useCallback(() => {
+    const audio = audioRef.current;
+    console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio });
+    
+    if (!hasUserInteracted && audio) {
+      // Try to play even if not fully ready - browsers may allow it after user interaction
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('Audio started successfully');
+          setIsAudioPlaying(true);
+          setIsAudioMuted(false);
+          setHasUserInteracted(true);
+        }).catch((error) => {
+          console.log('Audio autoplay failed:', error);
+          setHasUserInteracted(true); // Still mark as interacted to prevent future attempts
+        });
+      }
+    }
+  }, [hasUserInteracted]);
+
   // Handle page clicks
   const handlePageClick = useCallback((e: React.MouseEvent) => {
+    console.log('Page clicked, attempting to start audio');
+    // Start audio on first interaction
+    startAudioOnInteraction();
+    
     // Don't create balls if clicking on links
     if ((e.target as HTMLElement).tagName === 'A') return;
     
@@ -203,7 +236,7 @@ const Home: React.FC = () => {
       const y = e.clientY - rect.top;
       createBall(x, y);
     }
-  }, [createBall]);
+  }, [createBall, startAudioOnInteraction]);
 
   // Extract pixel data from image for collision detection
   const extractImagePixelData = useCallback(() => {
@@ -268,6 +301,32 @@ const Home: React.FC = () => {
       }
     }
   }, [extractImagePixelData]);
+
+  // Add global event listeners for user interactions to start audio
+  useEffect(() => {
+    if (hasUserInteracted) return;
+
+    console.log('Setting up global event listeners for audio autoplay');
+
+    const handleUserInteraction = (event: Event) => {
+      console.log('User interaction detected:', event.type);
+      startAudioOnInteraction();
+    };
+
+    // Listen for various user interaction events
+    const events = ['click', 'touchstart', 'keydown', 'mousemove', 'touchmove'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true, passive: true });
+    });
+
+    return () => {
+      console.log('Cleaning up global event listeners');
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
+    };
+  }, [hasUserInteracted, startAudioOnInteraction]);
 
   // Get collision boundaries for image only (text is ignored)
   const getCollisionBoundaries = useCallback(() => {
@@ -453,25 +512,39 @@ const Home: React.FC = () => {
       style={{ fontFamily: '"Times New Roman", Times, serif', color: '#e0a800' }}
       onClick={handlePageClick}
     >
-      {/* Background audio with autoplay attributes */}
-             <audio
-         ref={audioRef}
-         src="/audio/backgroundnoise.mp3"
-         loop
-         muted={false}
-         preload="auto"
-         style={{ display: 'none' }}
-         onCanPlayThrough={() => {
-           // Audio is ready to play
-           if (audioRef.current) {
-             audioRef.current.volume = 0.4;
-             setIsAudioReady(true);
-           }
-         }}
-         onPlay={() => setIsAudioPlaying(true)}
-         onPause={() => setIsAudioPlaying(false)}
-         onEnded={() => setIsAudioPlaying(false)}
-       />
+            {/* Background audio with enhanced mobile compatibility */}
+      <audio
+        ref={audioRef}
+        src="/audio/backgroundnoise.mp3"
+        loop
+        muted={false}
+        preload="auto"
+        playsInline
+        style={{ display: 'none' }}
+        onCanPlayThrough={() => {
+          // Audio is ready to play
+          console.log('Audio can play through - setting ready state');
+          if (audioRef.current) {
+            audioRef.current.volume = 0.4;
+            setIsAudioReady(true);
+          }
+        }}
+        onLoadedData={() => {
+          console.log('Audio data loaded');
+        }}
+        onPlay={() => {
+          console.log('Audio started playing');
+          setIsAudioPlaying(true);
+        }}
+        onPause={() => {
+          console.log('Audio paused');
+          setIsAudioPlaying(false);
+        }}
+        onEnded={() => setIsAudioPlaying(false)}
+        onError={(e) => {
+          console.log('Audio error:', e);
+        }}
+      />
       {/* Audio button - top right corner for all devices */}
       {isAudioReady && (
         <button
