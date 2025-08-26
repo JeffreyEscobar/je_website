@@ -24,11 +24,12 @@ const Home: React.FC = () => {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [userClickedBeforeReady, setUserClickedBeforeReady] = useState(false);
   
   // Debug logging for state changes
   useEffect(() => {
-    console.log('State update:', { hasUserInteracted, isAudioReady, isAudioPlaying });
-  }, [hasUserInteracted, isAudioReady, isAudioPlaying]);
+    console.log('State update:', { hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady });
+  }, [hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady]);
   const [balls, setBalls] = useState<Ball[]>([]);
   const ballIdRef = useRef(0);
   const animationRef = useRef<number>();
@@ -204,22 +205,28 @@ const Home: React.FC = () => {
     console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio });
     
     if (!hasUserInteracted && audio) {
-      // Try to play even if not fully ready - browsers may allow it after user interaction
-      const playPromise = audio.play();
+      setHasUserInteracted(true); // Mark that user has interacted
       
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Audio started successfully');
-          setIsAudioPlaying(true);
-          setIsAudioMuted(false);
-          setHasUserInteracted(true);
-        }).catch((error) => {
-          console.log('Audio autoplay failed:', error);
-          setHasUserInteracted(true); // Still mark as interacted to prevent future attempts
-        });
+      if (isAudioReady) {
+        // Audio is ready, try to play immediately
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('Audio started successfully');
+            setIsAudioPlaying(true);
+            setIsAudioMuted(false);
+          }).catch((error) => {
+            console.log('Audio autoplay failed:', error);
+          });
+        }
+      } else {
+        // Audio not ready yet, mark for later retry
+        console.log('User clicked but audio not ready - will retry when ready');
+        setUserClickedBeforeReady(true);
       }
     }
-  }, [hasUserInteracted]);
+  }, [hasUserInteracted, isAudioReady]);
 
   // Handle page clicks
   const handlePageClick = useCallback((e: React.MouseEvent) => {
@@ -309,12 +316,16 @@ const Home: React.FC = () => {
     console.log('Setting up global event listeners for audio autoplay');
 
     const handleUserInteraction = (event: Event) => {
-      console.log('User interaction detected:', event.type);
-      startAudioOnInteraction();
+      // Only respond to "active" interactions that grant audio permissions
+      const activeEvents = ['click', 'touchstart', 'keydown'];
+      if (activeEvents.includes(event.type)) {
+        console.log('Active user interaction detected:', event.type);
+        startAudioOnInteraction();
+      }
     };
 
-    // Listen for various user interaction events
-    const events = ['click', 'touchstart', 'keydown', 'mousemove', 'touchmove'];
+    // Listen only for active user interaction events (not passive ones like mousemove)
+    const events = ['click', 'touchstart', 'keydown'];
     
     events.forEach(event => {
       document.addEventListener(event, handleUserInteraction, { once: true, passive: true });
@@ -527,6 +538,22 @@ const Home: React.FC = () => {
           if (audioRef.current) {
             audioRef.current.volume = 0.4;
             setIsAudioReady(true);
+            
+            // If user clicked before audio was ready, try to start now
+            if (userClickedBeforeReady && !isAudioPlaying) {
+              console.log('Audio ready after user interaction - attempting to start');
+              const playPromise = audioRef.current.play();
+              if (playPromise !== undefined) {
+                playPromise.then(() => {
+                  console.log('Audio started successfully after ready');
+                  setIsAudioPlaying(true);
+                  setIsAudioMuted(false);
+                  setUserClickedBeforeReady(false); // Reset the flag
+                }).catch((error) => {
+                  console.log('Audio play failed after ready:', error);
+                });
+              }
+            }
           }
         }}
         onLoadedData={() => {
