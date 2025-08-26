@@ -20,6 +20,9 @@ const Home: React.FC = () => {
   const [secondLineCursorVisible, setSecondLineCursorVisible] = useState(false);
   const [isSecondLineAnimating, setIsSecondLineAnimating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [isAudioReady, setIsAudioReady] = useState(false);
   const [balls, setBalls] = useState<Ball[]>([]);
   const ballIdRef = useRef(0);
   const animationRef = useRef<number>();
@@ -27,55 +30,23 @@ const Home: React.FC = () => {
   const imagePixelDataRef = useRef<ImageData | null>(null);
   const imageCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useEffect(() => {
+  // Audio toggle function
+  const toggleAudio = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Immediately try to play on any user interaction
-    const playAudio = () => {
-      if (audio.paused) {
-        audio.play().catch((error) => {
-          console.log('Audio play failed:', error);
-        });
-      }
-    };
-
-    // Set up comprehensive user interaction listeners
-    const events = [
-      'click', 'mousedown', 'mouseup', 'mousemove', 'mouseover',
-      'keydown', 'keyup', 'keypress',
-      'touchstart', 'touchend', 'touchmove',
-      'scroll', 'wheel',
-      'focus', 'blur',
-      'resize'
-    ];
-
-    // Add all event listeners with immediate execution
-    events.forEach(event => {
-      document.addEventListener(event, playAudio, { 
-        once: true, 
-        passive: true,
-        capture: true 
+    if (isAudioPlaying) {
+      audio.pause();
+      setIsAudioPlaying(false);
+    } else {
+      audio.play().then(() => {
+        setIsAudioPlaying(true);
+        setIsAudioMuted(false);
+      }).catch((error) => {
+        console.log('Audio play failed:', error);
       });
-    });
-
-    // Also try immediate autoplay
-    const attemptAutoplay = () => {
-      audio.play().catch(() => {
-        // Silently fail, user interaction will handle it
-      });
-    };
-
-    // Try autoplay after a very short delay to let page load
-    setTimeout(attemptAutoplay, 50);
-
-    // Cleanup
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, playAudio, { capture: true });
-      });
-    };
-  }, [])
+    }
+  }, [isAudioPlaying]);
 
   useEffect(() => {
     let i = 0;
@@ -483,27 +454,76 @@ const Home: React.FC = () => {
       onClick={handlePageClick}
     >
       {/* Background audio with autoplay attributes */}
-      <audio
-        ref={audioRef}
-        src="/audio/backgroundnoise.mp3"
-        loop
-        autoPlay
-        muted={false}
-        preload="auto"
-        style={{ display: 'none' }}
-        onCanPlayThrough={() => {
-          // Try to play when audio is ready
-          if (audioRef.current) {
-            audioRef.current.volume = 0.4;
-            audioRef.current.play().catch(() => {
-              // Silently fail, user interaction will handle it
-            });
-          }
-        }}
-      />
-      <div className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-10 items-start overflow-visible">
+             <audio
+         ref={audioRef}
+         src="/audio/backgroundnoise.mp3"
+         loop
+         muted={false}
+         preload="auto"
+         style={{ display: 'none' }}
+         onCanPlayThrough={() => {
+           // Audio is ready to play
+           if (audioRef.current) {
+             audioRef.current.volume = 0.4;
+             setIsAudioReady(true);
+           }
+         }}
+         onPlay={() => setIsAudioPlaying(true)}
+         onPause={() => setIsAudioPlaying(false)}
+         onEnded={() => setIsAudioPlaying(false)}
+       />
+      {/* Audio button - top right corner for all devices */}
+      {isAudioReady && (
+        <button
+          onClick={toggleAudio}
+          className="fixed top-6 right-6 text-[#e0a800] hover:text-[#ffd700] transition-colors duration-200 p-3 z-50 pointer-events-auto group"
+          aria-label={isAudioPlaying ? "Pause audio" : "Play audio"}
+          title={isAudioPlaying ? "Pause audio" : "Play audio"}
+        >
+          {!isAudioPlaying ? (
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className="transition-all duration-200"
+            >
+              <polygon 
+                points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" 
+                fill="none" 
+                className="group-hover:fill-[#ffd700]"
+              />
+              <line x1="22" y1="9" x2="16" y2="15"></line>
+              <line x1="16" y1="9" x2="22" y2="15"></line>
+            </svg>
+          ) : (
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className="transition-all duration-200"
+            >
+              <polygon 
+                points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" 
+                fill="none" 
+                className="group-hover:fill-[#ffd700]"
+              />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          )}
+        </button>
+      )}
+
+      <div className="max-w-6xl mx-auto px-6 pt-20 pb-0 md:pt-12 md:pb-12 grid md:grid-cols-2 gap-10 items-start overflow-visible">
         <div className="relative z-40">
-          <h1 className="text-5xl mb-2 ">"Jeffrey Escobar"</h1>
+          <h1 className="text-5xl mb-2">"Jeffrey Escobar"</h1>
           <p className="italic text-lg mb-1">/ǰɛfri/ɛskobar/</p>
           <p className="text-lg mb-6">(human)</p>
 
