@@ -25,11 +25,33 @@ const Home: React.FC = () => {
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [userClickedBeforeReady, setUserClickedBeforeReady] = useState(false);
+  const [userHasMuted, setUserHasMuted] = useState(false);
+  const [isInSocialMedia, setIsInSocialMedia] = useState(false);
+  
+  // Detect if we're in a social media iframe/webview
+  useEffect(() => {
+    const checkSocialMedia = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isInFrame = window.self !== window.top;
+      const isInstagram = userAgent.includes('instagram');
+      const isTwitter = userAgent.includes('twitter') || userAgent.includes('x.com');
+      const isFacebook = userAgent.includes('facebook');
+      
+      const inSocialMedia = isInFrame || isInstagram || isTwitter || isFacebook;
+      setIsInSocialMedia(inSocialMedia);
+      
+      if (inSocialMedia) {
+        console.log('Detected social media environment:', { isInFrame, isInstagram, isTwitter, isFacebook });
+      }
+    };
+    
+    checkSocialMedia();
+  }, []);
   
   // Debug logging for state changes
   useEffect(() => {
-    console.log('State update:', { hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady });
-  }, [hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady]);
+    console.log('State update:', { hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady, userHasMuted, isInSocialMedia });
+  }, [hasUserInteracted, isAudioReady, isAudioPlaying, userClickedBeforeReady, userHasMuted, isInSocialMedia]);
   const [balls, setBalls] = useState<Ball[]>([]);
   const ballIdRef = useRef(0);
   const animationRef = useRef<number>();
@@ -43,9 +65,13 @@ const Home: React.FC = () => {
     if (!audio) return;
 
     if (isAudioPlaying) {
+      console.log('User manually muted audio');
       audio.pause();
       setIsAudioPlaying(false);
+      setUserHasMuted(true); // User explicitly muted
     } else {
+      console.log('User manually unmuted audio');
+      setUserHasMuted(false); // User explicitly unmuted
       audio.play().then(() => {
         setIsAudioPlaying(true);
         setIsAudioMuted(false);
@@ -202,7 +228,13 @@ const Home: React.FC = () => {
   // Auto-start audio on first user interaction
   const startAudioOnInteraction = useCallback(() => {
     const audio = audioRef.current;
-    console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio, isAudioPlaying });
+    console.log('startAudioOnInteraction called:', { hasUserInteracted, isAudioReady, audioExists: !!audio, isAudioPlaying, userHasMuted });
+    
+    // Don't auto-start if user has explicitly muted
+    if (userHasMuted) {
+      console.log('User has muted audio, skipping auto-start');
+      return;
+    }
     
     // Only try to start if audio isn't already playing
     if (audio && !isAudioPlaying) {
@@ -230,7 +262,7 @@ const Home: React.FC = () => {
     } else if (isAudioPlaying) {
       console.log('Audio is already playing, skipping');
     }
-  }, [hasUserInteracted, isAudioReady, isAudioPlaying]);
+  }, [hasUserInteracted, isAudioReady, isAudioPlaying, userHasMuted]);
 
   // Handle page clicks
   const handlePageClick = useCallback((e: React.MouseEvent) => {
@@ -238,8 +270,8 @@ const Home: React.FC = () => {
     // Start audio on first interaction
     startAudioOnInteraction();
     
-    // Additional direct attempt for stubborn mobile browsers
-    if (!isAudioPlaying && audioRef.current && isAudioReady) {
+    // Additional direct attempt for stubborn mobile browsers (only if not muted)
+    if (!isAudioPlaying && !userHasMuted && audioRef.current && isAudioReady) {
       console.log('Direct audio play attempt from click handler');
       audioRef.current.play().then(() => {
         console.log('Direct audio start successful');
@@ -563,8 +595,8 @@ const Home: React.FC = () => {
             audioRef.current.volume = 0.4;
             setIsAudioReady(true);
             
-            // If user clicked before audio was ready, try to start now
-            if (userClickedBeforeReady && !isAudioPlaying) {
+            // If user clicked before audio was ready, try to start now (only if not muted)
+            if (userClickedBeforeReady && !isAudioPlaying && !userHasMuted) {
               console.log('Audio ready after user interaction - attempting to start');
               const playPromise = audioRef.current.play();
               if (playPromise !== undefined) {
@@ -596,11 +628,23 @@ const Home: React.FC = () => {
           console.log('Audio error:', e);
         }}
       />
-      {/* Audio button - top right corner for all devices */}
-      {isAudioReady && (
+      {/* Audio button - top right corner for all devices with enhanced visibility for social media */}
+      {(isAudioReady || isInSocialMedia) && (
         <button
           onClick={toggleAudio}
-          className="fixed top-6 right-6 text-[#e0a800] hover:text-[#ffd700] transition-colors duration-200 p-3 z-50 pointer-events-auto group"
+          className={`fixed top-6 right-6 text-[#e0a800] hover:text-[#ffd700] transition-colors duration-200 p-3 pointer-events-auto group rounded-full backdrop-blur-sm ${
+            isInSocialMedia ? 'bg-black/60 border border-[#e0a800]/30' : 'bg-black/30'
+          }`}
+          style={{ 
+            zIndex: 99999,
+            position: 'fixed' as const,
+            isolation: 'isolate',
+            transform: 'translateZ(0)', // Force hardware acceleration
+            willChange: 'transform',
+            display: 'block',
+            visibility: 'visible' as const,
+            opacity: isAudioReady ? 1 : (isInSocialMedia ? 0.7 : 1)
+          }}
           aria-label={isAudioPlaying ? "Pause audio" : "Play audio"}
           title={isAudioPlaying ? "Pause audio" : "Play audio"}
         >
