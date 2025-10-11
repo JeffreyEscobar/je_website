@@ -119,7 +119,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (!typingComplete) return;
 
-    const words = ['visionary leader', 'trailblazer', 'vanguard', 'paragon', 'relentless dev'];
+    const words = ['leader', 'trailblazer', 'vanguard', 'relentless dev'];
     let currentWordIndex = 0;
     let currentText = '';
     
@@ -201,9 +201,10 @@ const Home: React.FC = () => {
   }, [isSecondLineAnimating]);
 
   // Physics constants
-  const GRAVITY = 0.5;
-  const BOUNCE_DAMPING = 0.8;
-  const FRICTION = 0.99;
+  const GRAVITY = 0.98; // More realistic gravity acceleration
+  const BOUNCE_DAMPING = 0.65; // More realistic energy loss on bounce
+  const FRICTION = 0.985; // Slight air resistance
+  const MIN_BOUNCE_VELOCITY = 0.5; // Stop bouncing when velocity is too low
 
   // Create a new ball at click position
   const createBall = useCallback((x: number, y: number) => {
@@ -426,7 +427,13 @@ const Home: React.FC = () => {
           }
           
           if (newY + ball.radius >= pageRect.height) {
-            newVy = -newVy * BOUNCE_DAMPING;
+            // Stop bouncing if velocity is too low (ball settles)
+            if (Math.abs(newVy) < MIN_BOUNCE_VELOCITY) {
+              newVy = 0;
+              newVx = newVx * 0.95; // Apply ground friction when rolling
+            } else {
+              newVy = -newVy * BOUNCE_DAMPING;
+            }
             newY = pageRect.height - ball.radius;
           }
           
@@ -465,7 +472,11 @@ const Home: React.FC = () => {
                 }
               } else {
                 // Vertical collision
-                newVy = -Math.abs(newVy) * BOUNCE_DAMPING * (minOverlap === overlapTop ? -1 : 1);
+                if (Math.abs(newVy) < MIN_BOUNCE_VELOCITY) {
+                  newVy = 0;
+                } else {
+                  newVy = -Math.abs(newVy) * BOUNCE_DAMPING * (minOverlap === overlapTop ? -1 : 1);
+                }
                 if (minOverlap === overlapTop) {
                   newY = boundary.y - ball.radius - separation;
                 } else {
@@ -735,12 +746,22 @@ const Home: React.FC = () => {
             </p>
             <p className="text-lg mt-2">
               <a 
+                href="https://www.breeze.engineer/landing" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:opacity-70 transition-opacity relative z-50 pointer-events-auto"
+              >
+                breeze
+              </a>
+            </p>
+            <p className="text-lg mt-2">
+              <a 
                 href="https://www.fredai.net/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:opacity-70 transition-opacity relative z-50 pointer-events-auto"
               >
-                fredai.net
+                fred ai
               </a>
             </p>
           </div>

@@ -8,7 +8,8 @@ const Links: React.FC = () => {
     >
       <div className="text-center px-6">
         <h1 className="text-5xl mb-2">"socials"</h1>
-        <p className="text-base mb-12 opacity-90">/soʊʃəlz/</p>
+        <p className="text-base opacity-90">/soʊʃəlz/</p>
+        <p className="text-base mb-12 opacity-90">(digital)</p>
         
         <div className="space-y-6 text-lg">
           <div>
