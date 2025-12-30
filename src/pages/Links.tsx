@@ -16,7 +16,7 @@ const Links: React.FC = () => {
             <ul className="space-y-4">
               <li>
                 <a 
-                  href="https://x.com/jeffiescobar" 
+                  href="https://x.com/JeffEscobars" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:opacity-70 transition-opacity"
@@ -26,7 +26,7 @@ const Links: React.FC = () => {
               </li>
               <li>
                 <a 
-                  href="https://www.instagram.com/jeffiescobar" 
+                  href="https://www.instagram.com/JeffEscobars" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:opacity-70 transition-opacity"
@@ -36,7 +36,7 @@ const Links: React.FC = () => {
               </li>
               <li>
                 <a 
-                  href="https://www.tiktok.com/@jeffiescobar" 
+                  href="https://www.tiktok.com/@JeffEscobars" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:opacity-70 transition-opacity"

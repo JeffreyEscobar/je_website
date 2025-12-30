@@ -746,6 +746,16 @@ const Home: React.FC = () => {
             </p>
             <p className="text-lg mt-2">
               <a 
+                href="https://apps.apple.com/us/app/house-ai-complete-home-design/id6756092749" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:opacity-70 transition-opacity relative z-50 pointer-events-auto"
+              >
+                House AI (iOS)
+              </a>
+            </p>
+            <p className="text-lg mt-2">
+              <a 
                 href="https://www.breeze.engineer/landing" 
                 target="_blank" 
                 rel="noopener noreferrer"
